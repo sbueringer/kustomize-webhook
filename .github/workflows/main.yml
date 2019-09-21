@@ -21,7 +21,6 @@ jobs:
       run: |
         docker login ${DOCKER_REGISTRY_URL} -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
         RELEASE_TAG=${DOCKER_TAG} make docker-push
-        RELEASE_TAG=latest make docker-push
       env:
         DOCKER_REGISTRY_URL: docker.pkg.github.com
         DOCKER_USERNAME: sbueringer
