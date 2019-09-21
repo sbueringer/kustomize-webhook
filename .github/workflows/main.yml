@@ -1,0 +1,25 @@
+name: Build and Push Docker Image
+
+on: [push]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Build the Docker image
+      run: make docker-build
+
+    - name: Login to Github Docker registry
+      uses: actions/docker/login@master
+      env:
+      - DOCKER_REGISTRY_URL: docker.pkg.github.com
+      - DOCKER_USERNAME: sbueringer
+      - DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Push the Docker Image
+      run: make docker-push
