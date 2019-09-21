@@ -17,9 +17,9 @@ jobs:
     - name: Login to Github Docker registry
       uses: actions/docker/login@master
       env:
-      - DOCKER_REGISTRY_URL: docker.pkg.github.com
-      - DOCKER_USERNAME: sbueringer
-      - DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        DOCKER_REGISTRY_URL: docker.pkg.github.com
+        DOCKER_USERNAME: sbueringer
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Push the Docker Image
       run: make docker-push

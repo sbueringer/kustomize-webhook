@@ -1,6 +1,6 @@
 
 # Define Docker related variables.
-IMG ?= docker.io/sbueringer/kustomize-webhook
+IMG ?= docker.pkg.github.com/sbueringer/kustomize-webhook/webhook
 TAG ?= latest
 
 ## --------------------------------------
