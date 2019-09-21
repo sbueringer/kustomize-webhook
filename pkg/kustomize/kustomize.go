@@ -14,6 +14,7 @@ import (
 	"sigs.k8s.io/kustomize/v3/pkg/resource"
 )
 
+// PatchJSON6902 is a struct for applying JSON 6902 patches
 type PatchJSON6902 struct {
 	// these fields specify the patch target resource
 	Group   string

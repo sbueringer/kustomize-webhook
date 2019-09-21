@@ -22,8 +22,8 @@ var _ = Describe("Mutating webhook", func() {
 				UID: "foobar",
 				Object: runtime.RawExtension{
 					Raw: mustMarshal(json.Marshal(&v1.Pod{
-						ObjectMeta: metav1.ObjectMeta {
-							Name: "test",
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "test",
 							Namespace: "test-pods",
 							Labels: map[string]string{
 								"inject": "tproxy",
@@ -32,7 +32,7 @@ var _ = Describe("Mutating webhook", func() {
 						Spec: v1.PodSpec{
 							Containers: []v1.Container{
 								{
-									Name: "test",
+									Name:  "test",
 									Image: "bazel:v1",
 								},
 							},
@@ -61,7 +61,7 @@ func getMutatingHandler() *mutatingHandler {
 	if err != nil {
 		panic(err)
 	}
-	err= mwh.InjectDecoder(decoder)
+	err = mwh.InjectDecoder(decoder)
 	if err != nil {
 		panic(err)
 	}
