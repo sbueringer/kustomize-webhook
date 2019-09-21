@@ -26,4 +26,4 @@ jobs:
         DOCKER_REGISTRY_URL: docker.pkg.github.com
         DOCKER_USERNAME: sbueringer
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        DOCKER_TAG: ${{ github.ref }}-${{ github.sha }}
+        DOCKER_TAG: ${{ github.sha }}
