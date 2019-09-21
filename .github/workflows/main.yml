@@ -1,6 +1,9 @@
 name: Build and Push Docker Image
 
-on: [push]
+on:
+  push:
+    branches:
+    - master
 
 jobs:
 
@@ -14,12 +17,11 @@ jobs:
     - name: Build the Docker image
       run: make docker-build
 
-    - name: Login to Github Docker registry
-      uses: actions/docker/login@master
+    - name: Push the Docker Image
+      run: |
+        docker login ${DOCKER_REGISTRY_URL} -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+        make docker-push
       env:
         DOCKER_REGISTRY_URL: docker.pkg.github.com
         DOCKER_USERNAME: sbueringer
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-    - name: Push the Docker Image
-      run: make docker-push
