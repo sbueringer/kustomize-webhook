@@ -17,12 +17,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"sigs.k8s.io/yaml"
+	"strings"
 	"text/template"
 )
 
 var (
-	scheme = runtime.NewScheme()
-	log    = ctrl.Log.WithName("setup")
+	scheme   = runtime.NewScheme()
+	setupLog = ctrl.Log.WithName("setup")
+	log      = ctrl.Log.WithName("webhook")
 
 	parsedTemplates []*template.Template
 )
@@ -54,18 +56,18 @@ func main() {
 		"/tmp/patches/*",
 		"The glob pattern to parse the patches from.",
 	)
-	log.Info("Parsing flags")
+	setupLog.Info("Parsing flags")
 	flag.Parse()
 
 	ctrl.SetLogger(klogr.New())
 
-	log.Info("Parsing templates")
+	setupLog.Info("Parsing templates")
 	parsedTemplates = template.Must(template.ParseGlob(patchesGlob)).Templates()
 
-	log.Info("Setting up manager")
+	setupLog.Info("Setting up manager")
 	cfg, err := config.GetConfigWithContext(os.Getenv("KUBECONTEXT"))
 	if err != nil {
-		log.Error(err, "unable to get kubeconfig")
+		setupLog.Error(err, "unable to get kubeconfig")
 		os.Exit(1)
 	}
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
@@ -73,11 +75,11 @@ func main() {
 		MetricsBindAddress: metricsAddr,
 	})
 	if err != nil {
-		log.Error(err, "unable to start manager")
+		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
-	log.Info("Setting up webhook server")
+	setupLog.Info("Setting up webhook server")
 	webhookServer := mgr.GetWebhookServer()
 	webhookServer.Register("/mutate", &admission.Webhook{
 		Handler: &mutatingHandler{},
@@ -85,9 +87,9 @@ func main() {
 	webhookServer.CertDir = certDir
 	webhookServer.Port = 8443
 
-	log.Info("Starting manager")
+	setupLog.Info("Starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		log.Error(err, "problem running manager")
+		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
 }
@@ -133,18 +135,21 @@ func (h *mutatingHandler) Handle(ctx context.Context, req admission.Request) adm
 	// Marshal Pod to bytes
 	objBytes, err := json.Marshal(pod)
 	if err != nil {
+		log.Info("debug dump", "pod", string(objBytes))
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 
 	// Execute kustomize build
 	newPod, err := kustomize.Build([]string{string(objBytes)}, patches, []kustomize.PatchJSON6902{})
 	if err != nil {
+		log.Info("debug dump", "pod", string(objBytes), "patches", strings.Join(patches,"\n"))
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 
 	// Convert patched Pod from YAML to Json
 	newPodJson, err := yaml.YAMLToJSON([]byte(newPod))
 	if err != nil {
+		log.Info("debug dump", "pod", string(objBytes), "patches", strings.Join(patches,"\n"), "new-pod", newPod)
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 

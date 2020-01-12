@@ -8,6 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+	"text/template"
 
 	. "github.com/onsi/ginkgo"
 	admissionv1beta1 "k8s.io/api/admission/v1beta1"
@@ -16,6 +17,22 @@ import (
 var _ = Describe("Mutating webhook", func() {
 	It("TODO", func() {
 		By("invoking the webhook")
+
+
+		parsedTemplates = []*template.Template{template.Must(template.New("test").Parse(`
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{.Name}}
+  namespace: test-pods
+spec:
+  {{if index .Annotations "pvc.daimler.com/size" }}
+  volumes:
+  - name: build
+	persistentVolumeClaim:
+	  claimName: {{.Name}}
+  {{ end }}
+		`))}
 
 		resp := getMutatingHandler().Handle(context.Background(), admission.Request{
 			AdmissionRequest: admissionv1beta1.AdmissionRequest{
@@ -27,6 +44,9 @@ var _ = Describe("Mutating webhook", func() {
 							Namespace: "test-pods",
 							Labels: map[string]string{
 								"inject": "tproxy",
+							},
+							Annotations: map[string]string{
+								"pvc.daimler.com/size": "15Gi",
 							},
 						},
 						Spec: v1.PodSpec{
